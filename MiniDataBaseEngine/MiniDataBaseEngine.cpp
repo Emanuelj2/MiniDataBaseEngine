@@ -43,6 +43,22 @@ public:
 
             if (line == "exit") break;
 
+            else if (line.find("CREATE") == 0)
+            {
+                std::cout << "creating a table ...\n";
+                //auto p1 = line.find("(");
+                //auto p2 = line.find(")");
+
+                //std::string name = line.substr(7, p1 - 7);
+                //name.erase(name.find_last_not_of(" ") + 1);
+
+
+            }
+            else if (line.find("USE") == 0)
+            {
+                std::cout << "using table <table_name> ... \n";
+            }
+
 
         }
     }
@@ -53,5 +69,7 @@ public:
 int main()
 {
     MiniDb db;
+    db.run();
+    return 0;
 
 }

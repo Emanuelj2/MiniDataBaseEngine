@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="MiniDataBaseEngine/MiniDataBaseEngine.vcxproj" />
+  <Project Path="MiniDataBaseEngine/MiniDataBaseEngine.vcxproj" Id="f4ef7546-a063-48e0-95cd-82a0c4466b32" />
 </Solution>
