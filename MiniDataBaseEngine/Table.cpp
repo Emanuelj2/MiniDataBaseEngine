@@ -1,10 +1,16 @@
 #include "Table.h"
-#include "string"
+#include <string>
 #include <fstream> 
 #include <sstream>
 #include <iostream>
 
-Table::Table(const std::string n = ""): name(n){}
+
+// THIS IS THE GOAL
+// id:INT | name : TEXT | age : INT |
+// 1 | Bob | 23 |
+// 2 | Alice | 30 |
+
+Table::Table(const std::string n): name(n){}
 
 std::string Table::filename() const
 {
@@ -46,4 +52,43 @@ bool Table::load()
 
     columns.clear();
     rows.clear();
+
+    std::string line;
+    std::string token;
+
+    std::getline(file, line);
+
+    std::stringstream schema(line);
+
+    while (std::getline(schema, token, '|'))
+    {
+        if (token.empty())
+        {
+            continue;
+        }
+
+        auto pos = token.find(':');
+
+        Column c;
+
+        c.name = token.substr(0, pos);
+        std::string t = token.substr(pos + 1);
+        c.type = (t == "INT") ? INT : TEXT;
+        columns.push_back(c);
+    }
+
+    while (std::getline(file, line))
+    {
+        Row r;
+        std::stringstream rowss(line);
+        while (std::getline(rowss, token, '|'))
+        {
+            if (!token.empty())
+            {
+                r.values.push_back(token);
+            }
+        }
+        rows.push_back(r);
+    }
+    return true;
 }
