@@ -25,8 +25,8 @@ class Table
 {
 public:
 	//constuctor
-	Table(std::string n = "");
-
+	Table(const std::string n = "");
+	
 	std::string filename() const;
 	void save();
 	bool load();
