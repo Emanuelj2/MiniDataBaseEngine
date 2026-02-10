@@ -11,6 +11,21 @@ void MiniDatabaseEngine::createTable(const std::string& name,
     std::cout << "Table '" << name << "' created.\n";
 }
 
+void MiniDatabaseEngine::seeTables()const
+{
+    if (tables.empty())
+    {
+        std::cout << "There are no tables\n";
+        return;
+    }
+
+    std::cout << "Tabels\n";
+    for (auto t : tables)
+    {
+        std::cout << "- " << t.first << "\n";
+    }
+}
+
 void MiniDatabaseEngine::useTable(const std::string& name)
 {
     Table t(name);
@@ -116,6 +131,10 @@ void MiniDatabaseEngine::run()
             }
 
             createTable(name, columns);
+        }
+        else if (line == "SHOW TABLES")
+        {
+            seeTables();
         }
 
         else if (line.find("USE") == 0)
