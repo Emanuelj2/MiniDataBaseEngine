@@ -16,6 +16,7 @@ class MiniDatabaseEngine
 
 public:
     void createTable(const std::string& name, const std::vector<Column>& cols);
+    void seeTables()const;
     void useTable(const std::string& name);
     void insertRow(const std::vector<std::string>& values);
     void selectAll();
