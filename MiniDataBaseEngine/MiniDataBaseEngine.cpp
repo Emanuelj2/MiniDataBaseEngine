@@ -1,180 +1,155 @@
-#include <iostream>
-#include <map>
-#include <string>
-#include <sstream>
-#include "Table.h"
-#include <vector>
+#include "MiniDatabaseEngine.h"
 #include <cctype>
 
-
-class MiniDb
+void MiniDatabaseEngine::createTable(const std::string& name,
+    const std::vector<Column>& cols)
 {
-    std::map<std::string, Table> tables;
-    Table* current = nullptr;
+    Table t(name);
+    t.columns = cols;
+    t.save();
+    tables[name] = t;
+    std::cout << "Table '" << name << "' created.\n";
+}
 
-public:
-    void createTable(const std::string& name, const std::vector<Column>& cols)
+void MiniDatabaseEngine::useTable(const std::string& name)
+{
+    Table t(name);
+    if (!t.load())
     {
-        Table t(name);
-        t.columns = cols;
-        t.save();
-        tables[name] = t;
-        std::cout << "Table '" << name << "' created.\n";
+        std::cout << "Table not found.\n";
+        return;
     }
 
-    void useTable(const std::string& name)
-    {
-        Table t(name);
-        if (!t.load())
-        {
-            std::cout << "Table not found.\n";
-            return;
-        }
+    tables[name] = t;
+    current = &tables[name];
+    std::cout << "Using table '" << name << "'.\n";
+}
 
-        tables[name] = t;
-        current = &tables[name];
-        std::cout << "Using table '" << name << "'.\n";
+void MiniDatabaseEngine::insertRow(const std::vector<std::string>& values)
+{
+    if (!current)
+    {
+        std::cout << "No table selected\n";
+        return;
     }
 
-    void insertRow(const std::vector<std::string>& values)
+    if (values.size() != current->columns.size())
     {
-        if (!current)
-        {
-            std::cout << "no to table selected\n";
-            return;
-        }
+        std::cout << "Column count does not match\n";
+        return;
+    }
 
-        if (values.size() != current->columns.size())
+    for (size_t i = 0; i < values.size(); i++)
+    {
+        if (current->columns[i].type == INT)
         {
-            std::cout << "columns do not match";
-            return;
-        }
-        for (size_t i = 0; i < values.size(); i++)
-        {
-            if (current->columns[i].type == INT)
+            for (char c : values[i])
             {
-                for (char c : values[i])
+                if (!isdigit(c))
                 {
-                    if(!isdigit(c))
-                    {
-                        std::cout << "invalid int value\n";
-                        return;
-                    }
+                    std::cout << "Invalid INT value\n";
+                    return;
                 }
             }
         }
-
-        Row r;
-        r.values = values;
-        current->rows.push_back(r);
-        current->save();
-        std::cout << "Row inserted\n";
     }
 
-    void selectAll()
-    {
-        if (!current)
-        {
-            std::cout << "No Table selected.\n";
-            return;
-        }
+    Row r;
+    r.values = values;
+    current->rows.push_back(r);
+    current->save();
+    std::cout << "Row inserted\n";
+}
 
-        for (auto& c : current->columns)
-        {
-            std::cout << c.name << "\t";
-        }
+void MiniDatabaseEngine::selectAll()
+{
+    if (!current)
+    {
+        std::cout << "No table selected.\n";
+        return;
+    }
+
+    for (auto& c : current->columns)
+        std::cout << c.name << "\t";
+    std::cout << "\n";
+
+    for (auto& r : current->rows)
+    {
+        for (auto& v : r.values)
+            std::cout << v << "\t";
         std::cout << "\n";
-
-        for (auto& r : current->rows)
-        {
-            for (auto& v : r.values)
-            {
-                std::cout << v << "\t";
-            }
-            std::cout << "\n";
-        }
     }
+}
 
-    void run()
-    {
-        std::string line;
-        while (true)
-        {
-            std::cout << "db > ";
-            std::getline(std::cin, line);
-
-            if (line == "EXIT") break;
-
-            else if (line.find("CREATE") == 0)
-            {
-                //std::cout << "creating a table ...\n";
-                auto p1 = line.find("(");
-                auto p2 = line.find(")");
-
-                std::string name = line.substr(7, p1 - 7);
-                name.erase(name.find_last_not_of(" ") + 1);  //if the last char is a space erase it
-
-                std::string cols = line.substr(p1 + 1, p2 - p1 - 1);
-                std::stringstream ss(cols);
-                std::vector<Column> columns;
-
-                std::string part;
-                while (std::getline(ss, part, ','))
-                {
-                    std::stringstream ps(part);
-                    Column c;
-                    std::string type;
-                    ps >> c.name >> type;
-                    c.type = (type == "INT") ? INT : TEXT;
-                    columns.push_back(c);
-                }
-                createTable(name, columns);
-
-
-            }
-            else if (line.find("USE") == 0)
-            {
-                std::string name = line.substr(4);
-                useTable(name);
-            }
-            else if (line.find("INSERT") == 0)
-            {
-                auto p1 = line.find("(");
-                auto p2 = line.find(")");
-
-                std::string vals = line.substr(p1 + 1, p2 - p1 - 1);
-                std::stringstream ss(vals);
-                std::vector<std::string> values;
-                std::string v;
-                while (std::getline(ss, v, ','))
-                {
-                    v.erase(0, v.find_first_not_of(" "));
-                    values.push_back(v);
-                }
-                insertRow(values);
-            }
-
-            else if (line == "SELECT *")
-            {
-                selectAll();
-            }
-            else
-            {
-                std::cout << "Invalid command.\n";
-            }
-
-
-
-        }
-    }
- 
-};
-
-
-int main()
+void MiniDatabaseEngine::run()
 {
-    MiniDb db;
-    db.run();
-    return 0;
+    std::string line;
 
+    while (true)
+    {
+        std::cout << "db > ";
+        std::getline(std::cin, line);
+
+        if (line == "EXIT") break;
+
+        else if (line.find("CREATE") == 0)
+        {
+            auto p1 = line.find("(");
+            auto p2 = line.find(")");
+
+            std::string name = line.substr(7, p1 - 7);
+            name.erase(name.find_last_not_of(" ") + 1);
+
+            std::string cols = line.substr(p1 + 1, p2 - p1 - 1);
+            std::stringstream ss(cols);
+            std::vector<Column> columns;
+
+            std::string part;
+            while (std::getline(ss, part, ','))
+            {
+                std::stringstream ps(part);
+                Column c;
+                std::string type;
+                ps >> c.name >> type;
+                c.type = (type == "INT") ? INT : TEXT;
+                columns.push_back(c);
+            }
+
+            createTable(name, columns);
+        }
+
+        else if (line.find("USE") == 0)
+        {
+            std::string name = line.substr(4);
+            useTable(name);
+        }
+
+        else if (line.find("INSERT") == 0)
+        {
+            auto p1 = line.find("(");
+            auto p2 = line.find(")");
+
+            std::string vals = line.substr(p1 + 1, p2 - p1 - 1);
+            std::stringstream ss(vals);
+            std::vector<std::string> values;
+            std::string v;
+
+            while (std::getline(ss, v, ','))
+            {
+                v.erase(0, v.find_first_not_of(" "));
+                values.push_back(v);
+            }
+
+            insertRow(values);
+        }
+
+        else if (line == "SELECT *")
+        {
+            selectAll();
+        }
+        else
+        {
+            std::cout << "Invalid command.\n";
+        }
+    }
 }

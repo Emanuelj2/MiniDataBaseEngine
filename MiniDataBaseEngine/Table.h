@@ -13,7 +13,7 @@ enum DataType
 struct Column 
 {
 	std::string name;
-	DataType type;
+	DataType type = INT;
 };
 
 struct Row
