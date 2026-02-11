@@ -85,13 +85,13 @@ void MiniDatabaseEngine::selectAll()
     }
 
     for (auto& c : current->columns)
-        std::cout  << "|" << c.name << "|\t";
+        std::cout << c.name << "\t";
     std::cout << "\n";
 
     for (auto& r : current->rows)
     {
         for (auto& v : r.values)
-            std::cout << "|" << v << "|\t";
+            std::cout << v << "\t";
         std::cout << "\n";
 
     }
@@ -129,6 +129,11 @@ void MiniDatabaseEngine::deleteTable(const std::string& name)
 
     std::cout << "Table '" << name << "' was deleted.\n";
     
+}
+
+void MiniDatabaseEngine::deleteRow(size_t index)
+{
+    //TODO: delete a row based on the index not including the column
 }
 
 void MiniDatabaseEngine::run()

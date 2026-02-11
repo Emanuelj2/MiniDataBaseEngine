@@ -20,6 +20,7 @@ public:
     void useTable(const std::string& name);
     void deleteTable(const std::string& name);
     void insertRow(const std::vector<std::string>& values);
+    void deleteRow(size_t index);
     void selectAll();
     void run();
 };
