@@ -85,15 +85,50 @@ void MiniDatabaseEngine::selectAll()
     }
 
     for (auto& c : current->columns)
-        std::cout << c.name << "\t";
+        std::cout  << "|" << c.name << "|\t";
     std::cout << "\n";
 
     for (auto& r : current->rows)
     {
         for (auto& v : r.values)
-            std::cout << v << "\t";
+            std::cout << "|" << v << "|\t";
         std::cout << "\n";
+
     }
+}
+
+void MiniDatabaseEngine::deleteTable(const std::string& name)
+{
+    std::cout << "deleting table\n";
+
+    if (tables.empty())
+    {
+        std::cout << "There are no tables to delete. \n";
+        return;
+    }
+    auto it = tables.find(name);
+    if (it == tables.end())
+    {
+        std::cout << "Table '" << name << "' not found.\n";
+        return;
+    }
+
+    // remove file from disk
+    std::string file = name + ".tbl";
+    if (std::remove(file.c_str()) != 0)
+    {
+        std::cout << "Warning: could not delete file from disk.\n";
+    }
+
+    // if the deleted table is currently selected
+    if (current == &it->second)
+        current = nullptr;
+
+    
+    tables.erase(it);
+
+    std::cout << "Table '" << name << "' was deleted.\n";
+    
 }
 
 void MiniDatabaseEngine::run()
@@ -141,6 +176,12 @@ void MiniDatabaseEngine::run()
         {
             std::string name = line.substr(4);
             useTable(name);
+        }
+
+        else if (line.find("DELETE") == 0)
+        {
+            std::string name = line.substr(7);
+            deleteTable(name);
         }
 
         else if (line.find("INSERT") == 0)
